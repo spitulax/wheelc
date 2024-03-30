@@ -114,7 +114,7 @@ void wheels_hud(Wheel *wheels, int wheel_count) {
 
 int main(void)
 {
-  InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Random ahh");
+  InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Wheel C");
   SetWindowState(FLAG_WINDOW_RESIZABLE);
 
   SetTargetFPS(60);

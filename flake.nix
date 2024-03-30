@@ -1,5 +1,5 @@
 {
-  description = "Some random C project";
+  description = "We'll see";
 
   inputs.nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
 
@@ -14,19 +14,19 @@
   {
     packages.${system}.default =
       with pkgs; stdenv.mkDerivation {
-        pname = "randomahh";
+        pname = "wheelc";
         version = "0.0.1";
         src = ./.;
         inherit buildInputs;
         installPhase = ''
           mkdir -p $out
-          cp build/randomahh $out
+          cp build/wheelc $out
         '';
       };
 
     devShells.${system}.default =
       with pkgs; mkShell {
-        name = "randomahh-shell";
+        name = "wheelc-shell";
         inherit buildInputs;
         CPATH = lib.makeSearchPathOutput "dev" "include" buildInputs;
       };

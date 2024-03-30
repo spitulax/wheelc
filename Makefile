@@ -1,4 +1,4 @@
-TARGET_NAME := randomahh
+TARGET_NAME := wheelc
 
 SRC := $(shell find ./src -type f -name "*.c")
 OBJ := $(SRC:./src/%.c=./build/%.o)
