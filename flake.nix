@@ -19,8 +19,8 @@
         src = ./.;
         inherit buildInputs;
         installPhase = ''
-          mkdir -p $out
-          cp build/wheelc $out
+          mkdir -p $out/bin
+          cp build/wheelc $out/bin
         '';
       };
 

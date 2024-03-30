@@ -6,7 +6,8 @@
 #define WINDOW_WIDTH 800
 #define WINDOW_HEIGHT 600
 #define FONT_SIZE 24
-#define MAX_WHEELS 100 // we can't afford too much
+// we can't afford too much
+#define MAX_WHEELS 100
 
 // Yes, this is catppuccin mocha
 #define COLOR_BACKGROUND GetColor(0x101020ff)
