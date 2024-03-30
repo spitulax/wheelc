@@ -5,6 +5,8 @@
 #define WINDOW_WIDTH 800
 #define WINDOW_HEIGHT 600
 
+#define FONT_SIZE 24
+
 // Yes, this is catppuccin mocha
 #define COLOR_BACKGROUND GetColor(0X101020ff)
 #define COLOR_TEXT GetColor(0xcdd6f4ff)
@@ -39,7 +41,7 @@ Wheel wheel_new(Vector2 center, float radius, float max_speed, int lines, Color 
 
 void wheel_draw(Wheel *wheel) {
   DrawCircleV(wheel->center, wheel->radius, wheel->base_color);
-  if (wheel->speed < wheel->max_speed)
+  if (wheel->speed < wheel->max_speed && wheel->speed > 0)
     wheel->speed = Lerp(wheel->speed, wheel->max_speed, WHEEL_ACCEL);
   else
     wheel->speed = Lerp(wheel->speed, wheel->max_speed, WHEEL_DECEL);
@@ -73,6 +75,20 @@ void wheels_poll(Wheel *wheels, int wheel_count) {
   }
 }
 
+void wheels_hud(Wheel *wheels, int wheel_count) {
+  for (int i = wheel_count - 1; i >= 0; i--) {
+    if (CheckCollisionPointCircle(GetMousePosition(), wheels[i].center, wheels[i].radius)) {
+      char buf[50] = {0};
+      sprintf(buf, "ID: %d\nStatus: %s\nSpeed: %.2f",
+              i,
+              wheels[i].max_speed == 0 ? "Stopped" : "Running",
+              wheels[i].speed);
+      DrawText(buf, 0, WINDOW_HEIGHT - FONT_SIZE*3, FONT_SIZE, COLOR_TEXT);
+      break;
+    }
+  }
+}
+
 #define WHEEL_COUNT 3
 
 int main(void)
@@ -101,6 +117,7 @@ int main(void)
 
     /* HUD */
     DrawFPS(0, 0);
+    wheels_hud(wheels, WHEEL_COUNT);
 
     EndDrawing();
   }
