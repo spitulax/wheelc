@@ -43,19 +43,17 @@ void wheel_draw(const Wheel *wheel) {
 void wheels_poll(Wheel *wheels, int wheel_count) {
   for (int i = wheel_count - 1; i >= 0; i--) {
     if (CheckCollisionPointCircle(GetMousePosition(), wheels[i].center, wheels[i].radius)) {
-      if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT)) {
+      if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT))
         wheels[i].radius += 10;
-      }
-      if (IsMouseButtonReleased(MOUSE_BUTTON_RIGHT)) {
+      if (IsMouseButtonReleased(MOUSE_BUTTON_RIGHT))
         wheels[i].radius -= 10;
-      }
 
-      if (GetMouseWheelMoveV().y > 0) {
+      if (GetMouseWheelMoveV().y > 0)
         wheels[i].speed += 10;
-      }
-      else if (GetMouseWheelMoveV().y < 0) {
+      else if (GetMouseWheelMoveV().y < 0)
         wheels[i].speed -= 10;
-      }
+      else if (IsMouseButtonPressed(MOUSE_BUTTON_MIDDLE))
+        wheels[i].speed = 0;
 
       break;
     }
