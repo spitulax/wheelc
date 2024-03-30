@@ -1,4 +1,5 @@
 #include "raylib.h"
+#include "raymath.h"
 #include <stdio.h>
 
 #define WINDOW_WIDTH 800
@@ -11,29 +12,41 @@
 #define COLOR_GREEN GetColor(0xa6e3a1ff)
 #define COLOR_RED GetColor(0xf38ba8ff)
 
+#define WHEEL_ACCEL 0.1
+#define WHEEL_DECEL 0.01
+
 typedef struct Wheel {
   Vector2 center;
   float radius;
-  float speed;
+  float max_speed;
   unsigned int lines;
   Color base_color;
+  float rot_deg;
+  float speed;
 } Wheel;
 
-Wheel wheel_new(Vector2 center, float radius, float speed, int lines, Color base_color) {
+Wheel wheel_new(Vector2 center, float radius, float max_speed, int lines, Color base_color) {
   return (Wheel) {
     .center = center,
     .radius = radius,
-    .speed = speed,
+    .max_speed = max_speed,
     .lines = lines,
     .base_color = base_color,
+    .rot_deg = 0,
+    .speed = 0,
   };
 }
 
-void wheel_draw(const Wheel *wheel) {
+void wheel_draw(Wheel *wheel) {
   DrawCircleV(wheel->center, wheel->radius, wheel->base_color);
+  if (wheel->speed < wheel->max_speed)
+    wheel->speed = Lerp(wheel->speed, wheel->max_speed, WHEEL_ACCEL);
+  else
+    wheel->speed = Lerp(wheel->speed, wheel->max_speed, WHEEL_DECEL);
+  wheel->rot_deg += wheel->speed * GetFrameTime();
   for (int i = 0; i < wheel->lines; i++) {
     float gap = 360.0f/wheel->lines*i;
-    float angle = GetTime()*wheel->speed + gap;
+    float angle = wheel->rot_deg + gap;
     DrawCircleSector(wheel->center, wheel->radius, angle, angle + 360.0f/wheel->lines, 100, ColorBrightness(wheel->base_color, -0.7 + 0.1 * (i % 10)));
   }
 }
@@ -49,11 +62,11 @@ void wheels_poll(Wheel *wheels, int wheel_count) {
         wheels[i].radius -= 10;
 
       if (GetMouseWheelMoveV().y > 0)
-        wheels[i].speed += 10;
+        wheels[i].max_speed += 10;
       else if (GetMouseWheelMoveV().y < 0)
-        wheels[i].speed -= 10;
-      else if (IsMouseButtonPressed(MOUSE_BUTTON_MIDDLE))
-        wheels[i].speed = 0;
+        wheels[i].max_speed -= 10;
+      else if (IsMouseButtonReleased(MOUSE_BUTTON_MIDDLE))
+        wheels[i].max_speed = 0;
 
       break;
     }
@@ -76,10 +89,10 @@ int main(void)
   };
 
   while (!WindowShouldClose()) {
-    BeginDrawing();
-
     /* Event */
     wheels_poll(wheels, WHEEL_COUNT);
+
+    BeginDrawing();
 
     /* Game */
     ClearBackground(COLOR_BACKGROUND);
