@@ -1,0 +1,20 @@
+TARGET_NAME := randomahh
+
+SRC := $(shell find ./src -type f -name "*.c")
+OBJ := $(SRC:./src/%.c=./build/%.o)
+
+LDFLAGS += -lraylib
+
+build/$(TARGET_NAME): $(OBJ)
+	$(CC) $(OBJ) -o $@ $(LDFLAGS)
+
+$(OBJ): build/%.o: src/%.c
+	mkdir -p $(dir $@)
+	$(CC) $(CFLAGS) -c $< -o $@
+
+.PHONY: all run clean
+all: $(TARGET_NAME)
+run:
+	./build/$(TARGET_NAME)
+clean:
+	rm -r ./build
