@@ -99,11 +99,12 @@ void wheels_poll(Wheel *wheels, unsigned int *wheel_count) {
 void wheels_hud(Wheel *wheels, int wheel_count) {
   for (int i = wheel_count - 1; i >= 0; i--) {
     if (CheckCollisionPointCircle(GetMousePosition(), wheels[i].center, wheels[i].radius)) {
-      char buf[50] = {0};
-      sprintf(buf, "ID: %d\nStatus: %s\nSpeed: %.2f",
+      char buf[100] = {0}; // TODO: unbound. autosegfault when reaches more than 100 chars
+      sprintf(buf, "ID: %d\nStatus: %s\nSpeed: %.2f\nRadius: %.2f",
               i,
               wheels[i].max_speed == 0 ? "Stopped" : "Running",
-              wheels[i].speed);
+              wheels[i].speed,
+              wheels[i].radius);
       DrawText(buf, 0, GetScreenHeight() - FONT_SIZE*3, FONT_SIZE, COLOR_TEXT);
       break;
     }
