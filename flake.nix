@@ -7,26 +7,29 @@
   let
     system = "x86_64-linux";
     pkgs = nixpkgs.legacyPackages.${system};
+    buildInputs = with pkgs; [
+      raylib
+    ];
   in
   {
     packages.${system}.default =
-      with pkgs; stdenv.mkDerivation (finalAttrs: {
+      with pkgs; stdenv.mkDerivation {
         pname = "randomahh";
         version = "0.0.1";
         src = ./.;
-        buildInputs = [
-          raylib
-        ];
+        inherit buildInputs;
         installPhase = ''
           mkdir -p $out
           cp build/randomahh $out
         '';
-      });
+      };
 
     devShells.${system}.default =
       with pkgs; mkShell {
         name = "randomahh-shell";
+        inherit buildInputs;
         inputsFrom = [ self.outputs.packages.${system}.default ];
+        CPATH = lib.makeSearchPathOutput "dev" "include" buildInputs;
       };
   };
 }
