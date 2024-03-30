@@ -1,18 +1,22 @@
 #include "raylib.h"
 
+#define WINDOW_WIDTH 800
+#define WINDOW_HEIGHT 600
+
+#include "wheel.h"
+#include "color.h"
+
 int main(void)
 {
-  const int screenWidth = 800;
-  const int screenHeight = 450;
-
-  InitWindow(screenWidth, screenHeight, "raylib [core] example - basic window");
+  InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Random ahh");
+  SetWindowState(FLAG_WINDOW_RESIZABLE);
 
   SetTargetFPS(60);
 
   while (!WindowShouldClose()) {
     BeginDrawing();
-    ClearBackground(RAYWHITE);
-    DrawText("Congrats! You created your first window!", 190, 200, 20, LIGHTGRAY);
+      ClearBackground(COLOR_BACKGROUND);
+      wheel_draw();
     EndDrawing();
   }
 
