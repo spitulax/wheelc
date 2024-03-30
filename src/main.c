@@ -16,7 +16,9 @@ int main(void)
   while (!WindowShouldClose()) {
     BeginDrawing();
       ClearBackground(COLOR_BACKGROUND);
-      wheel_draw();
+      wheel_draw((Vector2){ WINDOW_WIDTH/2.0f, WINDOW_HEIGHT/2.0f }, 300, 50, 12, COLOR_RED);
+      wheel_draw((Vector2){ 100, 400 }, 100, 100, 3, COLOR_BLUE);
+      DrawFPS(0, 0);
     EndDrawing();
   }
 

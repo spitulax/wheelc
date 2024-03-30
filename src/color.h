@@ -3,8 +3,10 @@
 
 #include "raylib.h"
 
-#define COLOR_BACKGROUND GetColor(0x101020FF)
-#define COLOR_TEXT GetColor(0xFFFFFFFF)
-#define COLOR_WHEEL GetColor(0xB56D14FF)
+// Yes, this is catppuccin mocha
+#define COLOR_BACKGROUND GetColor(0X101020ff)
+#define COLOR_TEXT GetColor(0xcdd6f4ff)
+#define COLOR_BLUE GetColor(0x89b4faff)
+#define COLOR_RED GetColor(0xf38ba8ff)
 
 #endif /* ifndef COLOR_H */

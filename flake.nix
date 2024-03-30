@@ -28,7 +28,6 @@
       with pkgs; mkShell {
         name = "randomahh-shell";
         inherit buildInputs;
-        inputsFrom = [ self.outputs.packages.${system}.default ];
         CPATH = lib.makeSearchPathOutput "dev" "include" buildInputs;
       };
   };
