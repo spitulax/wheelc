@@ -14,7 +14,7 @@ void wheel_draw(Vector2 center, float radius, float speed, int lines, Color colo
   for (int i = 0; i < lines; i++) {
     float gap = 360.0f/lines*i;
     float angle = GetTime()*speed + gap;
-    DrawCircleSector(center, radius, angle, angle + 360.0f/lines, 100, ColorBrightness(color, -0.8 + 0.1 * i));
+    DrawCircleSector(center, radius, angle, angle + 360.0f/lines, 100, ColorBrightness(color, -0.7 + 0.1 * (i % 10)));
   }
 }
 
@@ -28,8 +28,8 @@ int main(void)
   while (!WindowShouldClose()) {
     BeginDrawing();
       ClearBackground(COLOR_BACKGROUND);
-      wheel_draw((Vector2){ WINDOW_WIDTH/2.0f, WINDOW_HEIGHT/2.0f }, 300, 50, 12, COLOR_RED);
-      wheel_draw((Vector2){ 100, 400 }, 100, 100, 3, COLOR_BLUE);
+      wheel_draw((Vector2){ WINDOW_WIDTH/2.0f, WINDOW_HEIGHT/2.0f }, 300, 50, 100, COLOR_RED);
+      wheel_draw((Vector2){ 100, 400 }, 100, 100, 30, COLOR_BLUE);
       DrawFPS(0, 0);
     EndDrawing();
   }
