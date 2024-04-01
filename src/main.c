@@ -2,6 +2,7 @@
 #include "raymath.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 
 #define WINDOW_WIDTH 800
 #define WINDOW_HEIGHT 600
@@ -10,11 +11,25 @@
 #define MAX_WHEELS 100
 
 // Yes, this is catppuccin mocha
-#define COLOR_BACKGROUND GetColor(0x101020ff)
-#define COLOR_TEXT GetColor(0xcdd6f4ff)
-#define COLOR_BLUE GetColor(0x89b4faff)
-#define COLOR_GREEN GetColor(0xa6e3a1ff)
-#define COLOR_RED GetColor(0xf38ba8ff)
+#define COLOR_BASE 0x101020ff
+#define COLOR_TEXT 0xcdd6f4ff
+#define COLOR_COUNT 14
+unsigned int colors[COLOR_COUNT] = {
+  0xb4befeff,
+  0x89b4faff,
+  0x74c7ecff,
+  0x89dcebff,
+  0x94e2d5ff,
+  0xa6e3a1ff,
+  0xf9e2afff,
+  0xfab387ff,
+  0xeba0acff,
+  0xf38ba8ff,
+  0xcba6f7ff,
+  0xf5c2e7ff,
+  0xf2cdcdff,
+  0xf5e0dcff,
+};
 
 #define WHEEL_ACCEL 0.1
 #define WHEEL_DECEL 0.01
@@ -67,7 +82,8 @@ void wheels_draw(Wheel *wheels, int wheel_count) {
     for (int i = 0; i < wheel->slices; i++) {
       float gap = 360.0f/wheel->slices*i;
       float angle = wheel->rot_deg + gap;
-      DrawCircleSector(wheel->center, wheel->radius, angle, angle + 360.0f/wheel->slices, 100, ColorBrightness(wheel->base_color, -0.7 + 0.1 * (i % 10)));
+      Color color = ColorBrightness(wheel->base_color, -0.7 + 0.1 * (i % 10));
+      DrawCircleSector(wheel->center, wheel->radius, angle, angle + 360.0f/wheel->slices, 100, color);
     }
   }
 }
@@ -91,8 +107,10 @@ void wheels_poll(Wheel *wheels, unsigned int *wheel_count) {
 
       break;
     } else if (i <= 0) {
-      if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT))
-        wheels_add(wheels, wheel_count, wheel_new(GetMousePosition(), 100, 100, 10, COLOR_GREEN)); // TODO: randomize colors
+      if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT)) {
+        Color color = GetColor(colors[GetRandomValue(0, COLOR_COUNT-1)]);
+        wheels_add(wheels, wheel_count, wheel_new(GetMousePosition(), 100, 100, 10, color));
+      }
     }
   }
 }
@@ -107,7 +125,7 @@ void wheels_hud(Wheel *wheels, int wheel_count) {
               wheels[i].speed,
               wheels[i].radius,
               wheels[i].slices); // TODO: add/remove slices on the fly
-      DrawText(buf, 0, GetScreenHeight() - FONT_SIZE*4, FONT_SIZE, COLOR_TEXT);
+      DrawText(buf, 0, GetScreenHeight() - FONT_SIZE*4, FONT_SIZE, GetColor(COLOR_TEXT));
       break;
     }
   }
@@ -118,11 +136,16 @@ int main(void)
   InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Wheel C");
   SetWindowState(FLAG_WINDOW_RESIZABLE);
 
+  SetRandomSeed(time(NULL));
+
   SetTargetFPS(60);
 
   Wheel *wheels = calloc(MAX_WHEELS, sizeof(Wheel));
   unsigned int wheel_count = 0;
-  wheels_add(wheels, &wheel_count, wheel_new((Vector2) { WINDOW_WIDTH/2.0f, WINDOW_HEIGHT/2.0f }, 200, 50, 100, COLOR_BLUE));
+  wheels_add(wheels, &wheel_count, wheel_new(
+    (Vector2) { WINDOW_WIDTH/2.0f, WINDOW_HEIGHT/2.0f },
+    200, 50, 100,
+    GetColor(colors[GetRandomValue(0, COLOR_COUNT-1)])));
 
   while (!WindowShouldClose()) {
     /* Event */
@@ -132,7 +155,7 @@ int main(void)
     BeginDrawing();
 
     /* Game */
-    ClearBackground(COLOR_BACKGROUND);
+    ClearBackground(GetColor(COLOR_BASE));
     wheels_draw(wheels, wheel_count);
 
     /* HUD */
