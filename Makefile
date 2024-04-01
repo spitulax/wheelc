@@ -3,6 +3,8 @@ TARGET_NAME := wheelc
 SRC := $(shell find ./src -type f -name "*.c")
 OBJ := $(SRC:./src/%.c=./build/%.o)
 
+CFLAGS += -ggdb
+
 LDFLAGS += -lraylib -lm
 
 build/$(TARGET_NAME): $(OBJ)

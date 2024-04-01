@@ -83,13 +83,14 @@ void wheels_draw(Wheel *wheels, int wheel_count) {
     else
       wheel->velocity = Lerp(wheel->velocity, wheel->max_speed, WHEEL_DECEL);
     wheel->rot_deg += wheel->velocity * GetFrameTime();
-    for (int i = 0; i < wheel->slices; i++) {
-      float gap = 360.0f/wheel->slices*i;
-      float angle = wheel->rot_deg + gap;
-      Color color = ColorBrightness(wheel->base_color, -0.7 + 0.1 * (i % 10));
-      // Color color = GetColor(colors[GetRandomValue(0, COLOR_COUNT-1)]); // TODO: key to switch color palette
-      // TODO: sector division isn't accurate enough. go back to using the previous function
-      DrawCircleSector(wheel->center, wheel->radius, angle, angle + 360.0f/wheel->slices, 100, color);
+
+    for (int i = 0; i < wheel->slices && wheel->slices > 1; i++) {
+      Color color = (i % 10 < 5)
+        ? ColorBrightness(wheel->base_color, 0 + 0.1 * (i % 5))
+        : ColorBrightness(wheel->base_color, -0.5 + 0.1 * (i % 5));
+      const float slice_angle = 360.0f/wheel->slices;
+      const float angle = wheel->rot_deg + slice_angle * i;
+      DrawCircleSector(wheel->center, wheel->radius, angle, angle + slice_angle, 100, color);
     }
   }
 }
@@ -121,7 +122,7 @@ void wheels_poll(Wheel *wheels, unsigned int *wheel_count) {
       else if (IsKeyDown(KEY_MINUS) && !IsKeyDown(KEY_EQUAL)) {
         if (GetTime() - key_timeout >= KEY_DELAY) {
           if (wheel->slices > 1) wheel->slices--;
-          else                      fprintf(stderr, "[ERROR] Trying to remove more slice. Cancelling\n");
+          else                   fprintf(stderr, "[ERROR] Trying to remove more slice. Cancelling\n");
           key_timeout = GetTime();
         }
       }
