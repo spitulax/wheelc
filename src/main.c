@@ -31,6 +31,9 @@ unsigned int colors[COLOR_COUNT] = {
   0xf5e0dcff,
 };
 
+#define KEY_DELAY 0.1
+double key_timeout = 0;
+
 #define WHEEL_ACCEL 0.1
 #define WHEEL_DECEL 0.01
 
@@ -46,11 +49,11 @@ typedef struct Wheel {
 
 Wheel wheel_new(Vector2 center, float radius, float max_speed, int slices, Color base_color) {
   return (Wheel) {
-    .center = center,
-    .radius = radius,
-    .max_speed = max_speed,
-    .slices = slices,
-    .base_color = base_color,
+    center,
+    radius,
+    max_speed,
+    slices,
+    base_color,
     .rot_deg = 0,
     .speed = 0,
   };
@@ -83,6 +86,7 @@ void wheels_draw(Wheel *wheels, int wheel_count) {
       float gap = 360.0f/wheel->slices*i;
       float angle = wheel->rot_deg + gap;
       Color color = ColorBrightness(wheel->base_color, -0.7 + 0.1 * (i % 10));
+      // Color color = GetColor(colors[GetRandomValue(0, COLOR_COUNT-1)]); // TODO: key to switch color palette
       DrawCircleSector(wheel->center, wheel->radius, angle, angle + 360.0f/wheel->slices, 100, color);
     }
   }
@@ -105,6 +109,20 @@ void wheels_poll(Wheel *wheels, unsigned int *wheel_count) {
       else if (IsMouseButtonPressed(MOUSE_BUTTON_MIDDLE))
         wheels[i].max_speed = 0;
 
+      if (IsKeyDown(KEY_EQUAL) && !IsKeyDown(KEY_MINUS)) {
+        if (GetTime() - key_timeout >= KEY_DELAY) {
+          wheels[i].slices++;
+          key_timeout = GetTime();
+        }
+      }
+      else if (IsKeyDown(KEY_MINUS) && !IsKeyDown(KEY_EQUAL)) {
+        if (GetTime() - key_timeout >= KEY_DELAY) {
+          if (wheels[i].slices > 1) wheels[i].slices--;
+          else                      fprintf(stderr, "[ERROR] Trying to remove more slice. Cancelling\n");
+          key_timeout = GetTime();
+        }
+      }
+
       break;
     } else if (i <= 0) {
       if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT)) {
@@ -124,7 +142,7 @@ void wheels_hud(Wheel *wheels, int wheel_count) {
               wheels[i].max_speed == 0 ? "Stopped" : "Running",
               wheels[i].speed,
               wheels[i].radius,
-              wheels[i].slices); // TODO: add/remove slices on the fly
+              wheels[i].slices);
       DrawText(buf, 0, GetScreenHeight() - FONT_SIZE*4, FONT_SIZE, GetColor(COLOR_TEXT));
       break;
     }
