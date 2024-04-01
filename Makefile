@@ -1,22 +1,48 @@
-TARGET_NAME := wheelc
+PREFIX ?= $(HOME)/.local
+BIN_DIR ?= $(PREFIX)/bin
 
-SRC := $(shell find ./src -type f -name "*.c")
-OBJ := $(SRC:./src/%.c=./build/%.o)
+TARGET_EXEC ?= wheelc
+BUILD_DIR ?= ./build
+SRC_DIR	?= ./src
 
-CFLAGS += -ggdb
+SRCS := $(shell find $(SRC_DIR) -name *.cpp -or -name *.c)
+OBJS := $(SRCS:$(SRC_DIR)/%=$(BUILD_DIR)/%.o)
 
+# Common flags
+CPPFLAGS += -Wall -Wextra -ggdb
+
+# C specific flags
+CFLAGS +=
+
+# C++ specific flags
+CXXFLAGS +=
+
+# Linker flags
 LDFLAGS += -lraylib -lm
 
-build/$(TARGET_NAME): $(OBJ)
-	$(CC) $(OBJ) -o $@ $(LDFLAGS)
+# Executable
+$(BUILD_DIR)/$(TARGET_EXEC): $(OBJS)
+	$(CC) $(OBJS) -o $@ $(LDFLAGS)
 
-$(OBJ): build/%.o: src/%.c
+# C source
+$(BUILD_DIR)/%.c.o: $(SRC_DIR)/%.c
 	mkdir -p $(dir $@)
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@
 
-.PHONY: all run clean
-all: build/$(TARGET_NAME)
-run: build/$(TARGET_NAME)
-	./build/$(TARGET_NAME)
+# C++ source
+$(BUILD_DIR)/%.cpp.o: $(SRC_DIR)/%.cpp
+	mkdir -p $(dir $@)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $< -o $@
+
+.PHONY: all run install clean
+
+all: $(BUILD_DIR)/$(TARGET_EXEC)
+
+run: $(BUILD_DIR)/$(TARGET_EXEC)
+	./$<
+
+install: $(BUILD_DIR)/$(TARGET_EXEC)
+	install -Dt $(BIN_DIR) $<
+
 clean:
-	rm -r ./build
+	rm -r $(BUILD_DIR)

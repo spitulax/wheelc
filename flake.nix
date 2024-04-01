@@ -1,31 +1,40 @@
 {
-  description = "We'll see";
+  description = "Wheels in C";
 
   inputs.nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
 
   outputs = { self, nixpkgs, ... }:
   let
-    system = "x86_64-linux";
-    pkgs = nixpkgs.legacyPackages.${system};
+    systems = [ "x86_64-linux" "aarch64-linux" ];
+    forEachSystem = f: nixpkgs.lib.genAttrs systems (system: f nixpkgs.legacyPackages.${system} system);
   in
   {
-    packages.${system}.default =
-      with pkgs; stdenv.mkDerivation {
+    packages = forEachSystem (pkgs: system: {
+      default = with pkgs; stdenv.mkDerivation {
         pname = "wheelc";
-        version = "0.0.1";
+        version = "0.1.0";
         src = ./.;
+
+        nativeBuildInputs = [
+
+        ];
+
         buildInputs = [
           raylib
         ];
-        installPhase = ''
-          mkdir -p $out/bin
-          cp build/wheelc $out/bin
-        '';
-      };
 
-    devShells.${system}.default =
-      with pkgs; self.packages.${system}.default.overrideAttrs (finalAttrs: previousAttrs: {
-        CPATH = lib.makeSearchPathOutput "dev" "include" finalAttrs.buildInputs;
-      });
+        makeFlags = [ "PREFIX=$(out)" ];
+      };
+    });
+
+    devShells = forEachSystem (pkgs: system:
+      builtins.mapAttrs (_: p:
+        p.overrideAttrs (finalAttrs: prevAttrs: with pkgs; {
+          nativeBuildInputs = [
+
+          ] ++ (prevAttrs.nativeBuildInputs or [ ]);
+        })
+      ) self.packages.${system}
+    );
   };
 }

@@ -7,7 +7,6 @@
 #define WINDOW_WIDTH 800
 #define WINDOW_HEIGHT 600
 #define FONT_SIZE 24
-// we can't afford too much
 #define MAX_WHEELS 100
 
 // Yes, this is catppuccin mocha
@@ -48,7 +47,7 @@ typedef struct Wheel {
   float velocity;
 } Wheel;
 
-Wheel wheel_new(Vector2 center, float radius, float max_speed, int slices, Color base_color) {
+Wheel wheel_new(Vector2 center, float radius, float max_speed, unsigned int slices, Color base_color) {
   return (Wheel) {
     center,
     radius,
@@ -69,7 +68,7 @@ void wheels_add(Wheel *wheels, unsigned int *wheel_count, Wheel wheel) {
 
 void wheels_pop(Wheel *wheels, unsigned int *wheel_count) {
   if (*wheel_count > 1)
-    (*wheel_count)--;
+    wheels[(*wheel_count)--] = (Wheel){};
   else
     fprintf(stderr, "[ERROR] Trying to pop the only remaining wheel. Cancelling\n");
 }
@@ -84,7 +83,7 @@ void wheels_draw(Wheel *wheels, int wheel_count) {
       wheel->velocity = Lerp(wheel->velocity, wheel->max_speed, WHEEL_DECEL);
     wheel->rot_deg += wheel->velocity * GetFrameTime();
 
-    for (int i = 0; i < wheel->slices && wheel->slices > 1; i++) {
+    for (unsigned int i = 0; i < wheel->slices && wheel->slices > 1; i++) {
       const Color color = (i % 10 < 5)
         ? ColorBrightness(wheel->base_color, 0 + 0.1 * (i % 5))
         : ColorBrightness(wheel->base_color, -0.5 + 0.1 * (i % 5));
@@ -166,7 +165,7 @@ int main(void)
 
   SetTargetFPS(60);
 
-  Wheel *wheels = calloc(MAX_WHEELS, sizeof(Wheel));
+  Wheel wheels[MAX_WHEELS];
   unsigned int wheel_count = 0;
   wheels_add(wheels, &wheel_count, wheel_new(
     (Vector2) { WINDOW_WIDTH/2.0f, WINDOW_HEIGHT/2.0f },
@@ -190,8 +189,6 @@ int main(void)
 
     EndDrawing();
   }
-
-  free(wheels);
 
   CloseWindow();
 
