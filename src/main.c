@@ -85,7 +85,7 @@ void wheels_draw(Wheel *wheels, int wheel_count) {
     wheel->rot_deg += wheel->velocity * GetFrameTime();
 
     for (int i = 0; i < wheel->slices && wheel->slices > 1; i++) {
-      Color color = (i % 10 < 5)
+      const Color color = (i % 10 < 5)
         ? ColorBrightness(wheel->base_color, 0 + 0.1 * (i % 5))
         : ColorBrightness(wheel->base_color, -0.5 + 0.1 * (i % 5));
       const float slice_angle = 360.0f/wheel->slices;

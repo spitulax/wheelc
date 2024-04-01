@@ -7,9 +7,6 @@
   let
     system = "x86_64-linux";
     pkgs = nixpkgs.legacyPackages.${system};
-    buildInputs = with pkgs; [
-      raylib
-    ];
   in
   {
     packages.${system}.default =
@@ -17,7 +14,9 @@
         pname = "wheelc";
         version = "0.0.1";
         src = ./.;
-        inherit buildInputs;
+        buildInputs = [
+          raylib
+        ];
         installPhase = ''
           mkdir -p $out/bin
           cp build/wheelc $out/bin
@@ -25,10 +24,8 @@
       };
 
     devShells.${system}.default =
-      with pkgs; mkShell {
-        name = "wheelc-shell";
-        inherit buildInputs;
-        CPATH = lib.makeSearchPathOutput "dev" "include" buildInputs;
-      };
+      with pkgs; self.packages.${system}.default.overrideAttrs (finalAttrs: previousAttrs: {
+        CPATH = lib.makeSearchPathOutput "dev" "include" finalAttrs.buildInputs;
+      });
   };
 }
