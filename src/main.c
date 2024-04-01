@@ -35,7 +35,8 @@ unsigned int colors[COLOR_COUNT] = {
 double key_timeout = 0;
 
 #define WHEEL_ACCEL 0.1
-#define WHEEL_DECEL 0.01
+#define WHEEL_DECEL 0.015
+#define WHEEL_SPIN_FORCE 2000
 
 typedef struct Wheel {
   Vector2 center;
@@ -44,7 +45,7 @@ typedef struct Wheel {
   unsigned int slices;
   Color base_color;
   float rot_deg;
-  float speed;
+  float velocity;
 } Wheel;
 
 Wheel wheel_new(Vector2 center, float radius, float max_speed, int slices, Color base_color) {
@@ -55,7 +56,7 @@ Wheel wheel_new(Vector2 center, float radius, float max_speed, int slices, Color
     slices,
     base_color,
     .rot_deg = 0,
-    .speed = 0,
+    .velocity = 0,
   };
 }
 
@@ -77,16 +78,17 @@ void wheels_draw(Wheel *wheels, int wheel_count) {
   for (int i = 0; i < wheel_count; i++) {
     Wheel *wheel = &wheels[i];
     DrawCircleV(wheel->center, wheel->radius, wheel->base_color);
-    if (wheel->speed < wheel->max_speed && wheel->speed > 0)
-      wheel->speed = Lerp(wheel->speed, wheel->max_speed, WHEEL_ACCEL);
+    if (wheel->velocity < wheel->max_speed && wheel->velocity > 0)
+      wheel->velocity = Lerp(wheel->velocity, wheel->max_speed, WHEEL_ACCEL);
     else
-      wheel->speed = Lerp(wheel->speed, wheel->max_speed, WHEEL_DECEL);
-    wheel->rot_deg += wheel->speed * GetFrameTime();
+      wheel->velocity = Lerp(wheel->velocity, wheel->max_speed, WHEEL_DECEL);
+    wheel->rot_deg += wheel->velocity * GetFrameTime();
     for (int i = 0; i < wheel->slices; i++) {
       float gap = 360.0f/wheel->slices*i;
       float angle = wheel->rot_deg + gap;
       Color color = ColorBrightness(wheel->base_color, -0.7 + 0.1 * (i % 10));
       // Color color = GetColor(colors[GetRandomValue(0, COLOR_COUNT-1)]); // TODO: key to switch color palette
+      // TODO: sector division isn't accurate enough. go back to using the previous function
       DrawCircleSector(wheel->center, wheel->radius, angle, angle + 360.0f/wheel->slices, 100, color);
     }
   }
@@ -96,32 +98,36 @@ void wheels_draw(Wheel *wheels, int wheel_count) {
 // This makes sure only the topmost wheel gets polled
 void wheels_poll(Wheel *wheels, unsigned int *wheel_count) {
   for (int i = *wheel_count - 1; i >= 0; i--) {
-    if (CheckCollisionPointCircle(GetMousePosition(), wheels[i].center, wheels[i].radius)) {
+    Wheel *wheel = &wheels[i];
+    if (CheckCollisionPointCircle(GetMousePosition(), wheel->center, wheel->radius)) {
       if (IsMouseButtonReleased(MOUSE_BUTTON_LEFT))
-        wheels[i].radius += 10;
+        wheel->radius += 10;
       if (IsMouseButtonReleased(MOUSE_BUTTON_RIGHT))
-        wheels[i].radius -= 10;
+        wheel->radius -= 10;
 
       if (GetMouseWheelMoveV().y > 0)
-        wheels[i].max_speed += 10;
+        wheel->max_speed += 10;
       else if (GetMouseWheelMoveV().y < 0)
-        wheels[i].max_speed -= 10;
+        wheel->max_speed -= 10;
       else if (IsMouseButtonPressed(MOUSE_BUTTON_MIDDLE))
-        wheels[i].max_speed = 0;
+        wheel->max_speed = 0;
 
       if (IsKeyDown(KEY_EQUAL) && !IsKeyDown(KEY_MINUS)) {
         if (GetTime() - key_timeout >= KEY_DELAY) {
-          wheels[i].slices++;
+          wheel->slices++;
           key_timeout = GetTime();
         }
       }
       else if (IsKeyDown(KEY_MINUS) && !IsKeyDown(KEY_EQUAL)) {
         if (GetTime() - key_timeout >= KEY_DELAY) {
-          if (wheels[i].slices > 1) wheels[i].slices--;
+          if (wheel->slices > 1) wheel->slices--;
           else                      fprintf(stderr, "[ERROR] Trying to remove more slice. Cancelling\n");
           key_timeout = GetTime();
         }
       }
+
+      if (IsKeyReleased(KEY_SPACE))
+        wheel->velocity = Lerp(wheel->max_speed + WHEEL_SPIN_FORCE, wheel->max_speed, WHEEL_ACCEL);
 
       break;
     } else if (i <= 0) {
@@ -135,14 +141,15 @@ void wheels_poll(Wheel *wheels, unsigned int *wheel_count) {
 
 void wheels_hud(Wheel *wheels, int wheel_count) {
   for (int i = wheel_count - 1; i >= 0; i--) {
-    if (CheckCollisionPointCircle(GetMousePosition(), wheels[i].center, wheels[i].radius)) {
+    Wheel *wheel = &wheels[i];
+    if (CheckCollisionPointCircle(GetMousePosition(), wheel->center, wheel->radius)) {
       char buf[100] = {0}; // TODO: unbound. autosegfault when reaches more than allocated chars
       sprintf(buf, "ID: %d\nStatus: %s\nSpeed: %.2f\nRadius: %.2f\nSlices: %d",
               i,
-              wheels[i].max_speed == 0 ? "Stopped" : "Running",
-              wheels[i].speed,
-              wheels[i].radius,
-              wheels[i].slices);
+              wheel->max_speed == 0 ? "Stopped" : "Running",
+              wheel->velocity,
+              wheel->radius,
+              wheel->slices);
       DrawText(buf, 0, GetScreenHeight() - FONT_SIZE*4, FONT_SIZE, GetColor(COLOR_TEXT));
       break;
     }
