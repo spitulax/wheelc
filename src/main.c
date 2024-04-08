@@ -18,6 +18,7 @@ unsigned int colors[COLOR_COUNT] = {
     0xfab387ff, 0xeba0acff, 0xf38ba8ff, 0xcba6f7ff, 0xf5c2e7ff, 0xf2cdcdff, 0xf5e0dcff,
 };
 
+#define HUD_BUF_SIZE 100
 #define KEY_DELAY 0.1
 double key_timeout = 0;
 
@@ -47,14 +48,14 @@ void wheels_add(Wheel *wheels, unsigned int *wheel_count, Wheel wheel) {
     if (*wheel_count + 1 < MAX_WHEELS)
         wheels[(*wheel_count)++] = wheel;
     else
-        fprintf(stderr, "[ERROR] Trying to add more wheel past MAX_WHEELS. Cancelling\n");
+        fprintf(stderr, "[WARNING] Trying to add more wheel past MAX_WHEELS\n");
 }
 
 void wheels_pop(Wheel *wheels, unsigned int *wheel_count) {
     if (*wheel_count > 1)
         wheels[(*wheel_count)--] = (Wheel){};
     else
-        fprintf(stderr, "[ERROR] Trying to pop the only remaining wheel. Cancelling\n");
+        fprintf(stderr, "[WARNING] Trying to pop the only remaining wheel\n");
 }
 
 void wheels_draw(Wheel *wheels, int wheel_count) {
@@ -106,7 +107,7 @@ void wheels_poll(Wheel *wheels, unsigned int *wheel_count) {
                     if (wheel->slices > 1)
                         wheel->slices--;
                     else
-                        fprintf(stderr, "[ERROR] Trying to remove more slice. Cancelling\n");
+                        fprintf(stderr, "[WARNING] Trying to remove more slice\n");
                     key_timeout = GetTime();
                 }
             }
@@ -129,13 +130,14 @@ void wheels_hud(Wheel *wheels, int wheel_count) {
     for (int i = wheel_count - 1; i >= 0; i--) {
         Wheel *wheel = &wheels[i];
         if (CheckCollisionPointCircle(GetMousePosition(), wheel->center, wheel->radius)) {
-            // TODO: unbound. autosegfault when reaches more than allocated chars
-            char buf[100] = { 0 };
-            sprintf(
-                buf, "ID: %d\nStatus: %s\nSpeed: %.2f\nRadius: %.2f\nSlices: %d", i,
+            char buf[HUD_BUF_SIZE] = { 0 };
+            int len = snprintf(
+                buf, HUD_BUF_SIZE, "ID: %d\nStatus: %s\nSpeed: %.2f\nRadius: %.2f\nSlices: %d", i,
                 wheel->max_speed == 0 ? "Stopped" : "Running", wheel->velocity, wheel->radius,
                 wheel->slices
             );
+            if (len + 1 > HUD_BUF_SIZE)
+                fprintf(stderr, "[WARNING] HUD text buffer overflew\n");
             DrawText(buf, 0, GetScreenHeight() - FONT_SIZE * 4, FONT_SIZE, GetColor(COLOR_TEXT));
             break;
         }
