@@ -1,5 +1,6 @@
 #include "raylib.h"
 #include "raymath.h"
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -18,7 +19,6 @@ unsigned int colors[COLOR_COUNT] = {
     0xfab387ff, 0xeba0acff, 0xf38ba8ff, 0xcba6f7ff, 0xf5c2e7ff, 0xf2cdcdff, 0xf5e0dcff,
 };
 
-#define HUD_BUF_SIZE 100
 #define KEY_DELAY 0.1
 double key_timeout = 0;
 
@@ -130,15 +130,18 @@ void wheels_hud(Wheel *wheels, int wheel_count) {
     for (int i = wheel_count - 1; i >= 0; i--) {
         Wheel *wheel = &wheels[i];
         if (CheckCollisionPointCircle(GetMousePosition(), wheel->center, wheel->radius)) {
-            char buf[HUD_BUF_SIZE] = { 0 };
-            int len = snprintf(
-                buf, HUD_BUF_SIZE, "ID: %d\nStatus: %s\nSpeed: %.2f\nRadius: %.2f\nSlices: %d", i,
-                wheel->max_speed == 0 ? "Stopped" : "Running", wheel->velocity, wheel->radius,
-                wheel->slices
+#define HUD_TEXT                                                                                   \
+    "ID: %d\nStatus: %s\nSpeed: %.2f\nRadius: %.2f\nSlices: %d", i,                                \
+        wheel->max_speed == 0 ? "Stopped" : "Running", wheel->velocity, wheel->radius,             \
+        wheel->slices
+            int len = snprintf(NULL, 0, HUD_TEXT);
+            assert(len >= 0);
+            char hud_buf[len + 1];
+            int len2 = snprintf(hud_buf, len + 1, HUD_TEXT);
+            assert(len2 == len);
+            DrawText(
+                hud_buf, 0, GetScreenHeight() - FONT_SIZE * 4, FONT_SIZE, GetColor(COLOR_TEXT)
             );
-            if (len + 1 > HUD_BUF_SIZE)
-                fprintf(stderr, "[WARNING] HUD text buffer overflew\n");
-            DrawText(buf, 0, GetScreenHeight() - FONT_SIZE * 4, FONT_SIZE, GetColor(COLOR_TEXT));
             break;
         }
     }
